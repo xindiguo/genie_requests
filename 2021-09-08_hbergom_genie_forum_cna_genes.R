@@ -1,6 +1,11 @@
-# Description: 
+# Description: look at CNA genes and sample IDs for cBioPortal and v10.
 # Author: Haley Hunter-Zinck
-# Date: 
+# Date: September 8, 2021
+# Request:
+#   Source: GENIE discussion forum
+#   URL: https://www.synapse.org/#!Synapse:syn7222066/discussion/threadId=8047
+#   Date of request: 06/23/2021
+#   Requestor: https://www.synapse.org/#!Profile:3428670 (hbergom)
 
 # setup ----------------------------
 
