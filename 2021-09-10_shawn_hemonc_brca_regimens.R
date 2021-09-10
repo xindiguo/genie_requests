@@ -95,6 +95,5 @@ save_to_synapse(file_name = file_output,
 file.remove(file_output)
 
 toc = as.double(Sys.time())
-print(glue("Outfile: {file_output}"))
-print(glue("Saved to {synid_folder_output}"))
+print(glue("File '{file_output}' saved to {synid_folder_output}"))
 print(glue("Runtime: {round(toc - tic)} s"))
