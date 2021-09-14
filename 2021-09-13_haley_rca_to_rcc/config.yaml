@@ -75,3 +75,5 @@ mapping:
     6: "Form Removed"
     7: "Form Locked"
     8: "Form Signed"
+misc:
+  debug: TRUE

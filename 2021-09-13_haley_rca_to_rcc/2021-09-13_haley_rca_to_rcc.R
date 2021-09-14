@@ -29,8 +29,20 @@ synid_file_prostate_rcc_all <- "syn25610356"
 
 # configuration
 config <- read_yaml("config.yaml")
+debug <- config$misc$debug
 
 # functions ----------------------------
+
+now <- function(timeOnly = F, tz = "US/Pacific") {
+  
+  Sys.setenv(TZ=tz)
+  
+  if(timeOnly) {
+    return(format(Sys.time(), "%H:%M:%S"))
+  }
+  
+  return(format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+}
 
 #' Return a file upload data corresponding to a cohort-site pair as an R object.
 #'
@@ -347,6 +359,10 @@ format_rcc <- function(x, dd) {
 
 # read ----------------------------
 
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Reading previous RCC export..."))
+}
+
 rcc <- read.csv(synGet(config$output[[cohort]])$path, 
                 sep = "\t", 
                 skip = 36, 
@@ -354,6 +370,10 @@ rcc <- read.csv(synGet(config$output[[cohort]])$path,
                 stringsAsFactors = F,
                 check.names = F,
                 na.strings = c(""))
+
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Reading data dictionary..."))
+}
 
 synid_dd <- get_bpc_synid_prissmm(synid_table_prissmm = config$synapse$synid_table_prissmm, 
                                   cohort = cohort,
@@ -364,17 +384,29 @@ dd <- read.csv(synGet(synid_dd)$path,
                check.names = F,
                na.strings = c(""))
 
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Reading global response set..."))
+}
+
 grs <- read.csv(synGet(config$synapse$synid_file_grs)$path, 
                 sep = ",", 
                 stringsAsFactors = F,
                 check.names = F,
                 na.strings = c(""))
 
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Reading data uploads..."))
+}
+
 data_upload <- list()
 for (i in 1:length(config$upload[[cohort]])) {
   
   config_cohort <- config$upload[[cohort]]
   site <- names(config_cohort)[i]
+  
+  if (debug) {
+    print(glue("  {now(timeOnly = T)}: Reading data upload for site {site}..."))
+  }
   
   data_upload[[site]] <- get_bpc_data_upload(cohort = cohort, 
                                              site = site, 
@@ -383,17 +415,37 @@ for (i in 1:length(config$upload[[cohort]])) {
 
 # main ----------------------------
 
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Generating parsed mappings..."))
+}
+
 # mappings
 mappings_dd <- parse_mappings(strs = dd[[config$column_name$variable_mapping]], 
                                            labels = dd[[config$column_name$variable_name]])
 mappings_grs <- parse_mappings(strs = grs[,config$column_name$rs_value], 
                              labels = grs[,config$column_name$rs_label])
 
-# merge and uncode
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Merging data uploads..."))
+}
+
+# merge
 coded <- merge_datasets(data_upload)
+
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Uncoding data uploads..."))
+}
+
+# uncode
 uncoded <- uncode_data(df_coded = coded, 
                        mappings = mappings_grs,
                        secondary_mappings = mappings_dd)
+
+if (debug) {
+  print(glue("{now(timeOnly = T)}: Formatting uncoded data like RCC..."))
+}
+
+# format like RCC
 rcc_from_uncoded <- format_rcc(uncoded, dd = dd)
 
 # validate ----------------------------
