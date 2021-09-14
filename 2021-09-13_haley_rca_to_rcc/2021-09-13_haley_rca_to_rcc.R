@@ -92,7 +92,9 @@ get_bpc_data_upload <- function(cohort, site, obj) {
   }
   
   if (length(obj$data2)) {
-    data <- data1 %>% inner_join(data2, by = "record_id")
+    data <- data1 %>% inner_join(data2, by = c("record_id", 
+                                               "redcap_repeat_instrument", 
+                                               "redcap_repeat_instance"))
   } else {
     data <- data1
   }
@@ -363,10 +365,10 @@ if (debug) {
   print(glue("{now(timeOnly = T)}: Reading previous RCC export..."))
 }
 
-rcc <- read.csv(synGet(config$output[[cohort]])$path, 
-                sep = "\t", 
-                skip = 36, 
-                header = T, 
+rcc <- read.csv(synGet(config$output[[cohort]])$path,
+                sep = "\t",
+                skip = 36,
+                header = T,
                 stringsAsFactors = F,
                 check.names = F,
                 na.strings = c(""))
