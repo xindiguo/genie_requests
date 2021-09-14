@@ -8,8 +8,6 @@
 #          were excluded from the VICC data upload and not dropped during creation of the 
 #          synapse tables?
 
-
-
 # setup ----------------------------
 
 tic = as.double(Sys.time())
