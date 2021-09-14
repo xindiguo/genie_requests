@@ -1,6 +1,7 @@
 synapse:
   synid_file_grs: syn24184523
   synid_table_prissmm: syn22684834
+  synid_folder_rcc_exports: syn24609065
 upload:
   BrCa:
     DFCI:
@@ -51,11 +52,21 @@ upload:
     VICC:
       data1: syn25592242
 output:
-  BrCa: syn24609066
-  CRC: syn25578083
-  NSCLC: syn25570730
-  PANC: syn25578183
-  Prostate: syn25610356
+  BrCa: 
+    id: syn24609066
+    skip: 35
+  CRC: 
+    id: syn25578083
+    skip: NA
+  NSCLC: 
+    id: syn25570730
+    skip: NA
+  PANC: 
+    id: syn25578183
+    skip: NA
+  Prostate: 
+    id: syn25610356
+    skip: 36
 column_name:
   variable_name: "Variable / Field Name"
   form_name: "Form Name"

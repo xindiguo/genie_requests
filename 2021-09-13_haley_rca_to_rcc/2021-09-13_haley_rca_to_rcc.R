@@ -359,15 +359,26 @@ format_rcc <- function(x, dd) {
   return(x)
 }
 
+save_to_synapse <- function(file_name, parent_id, prov_name = "", prov_desc = "", prov_used = "", prov_exec = "") {
+  file <- File(path = file_name, parentId = parent_id)
+  act <- Activity(name = prov_name,
+                  description = prov_desc,
+                  used = prov_used,
+                  executed = prov_exec)
+  file <- synStore(file, activity = act)
+  
+  return(T)
+}
+
 # read ----------------------------
 
 if (debug) {
   print(glue("{now(timeOnly = T)}: Reading previous RCC export..."))
 }
 
-rcc <- read.csv(synGet(config$output[[cohort]])$path,
+rcc <- read.csv(synGet(config$output[[cohort]]$id)$path,
                 sep = "\t",
-                skip = 36,
+                skip = config$output[[cohort]]$skip,
                 header = T,
                 stringsAsFactors = F,
                 check.names = F,
@@ -450,6 +461,19 @@ if (debug) {
 # format like RCC
 rcc_from_uncoded <- format_rcc(uncoded, dd = dd)
 
+# later: write to file
+file_output <- glue("{cohort}_RCC_export.tsv")
+write.table(x = rcc_from_uncoded, file = file_output, row.names = F, sep = "\t")
+
+# write to Synapse and clean up
+# save_to_synapse(file_name = file_output, 
+#                 parent_id = config$synapse$synid_folder_rcc_exports, 
+#                 prov_name = "", 
+#                 prov_desc = "", 
+#                 prov_used = "", 
+#                 prov_exec = "")
+#file.remove(file_output)
+
 # validate ----------------------------
 dim(uncoded)
 dim(rcc)
@@ -493,8 +517,6 @@ table(comp_na_result, useNA = "always")
 
 head(colnames(rcc)[which(!comp_val_result)], 10)
 head(colnames(rcc)[which(!comp_na_result)], 10)
-
-# later: write to file
 
 # close out ----------------------------
 
