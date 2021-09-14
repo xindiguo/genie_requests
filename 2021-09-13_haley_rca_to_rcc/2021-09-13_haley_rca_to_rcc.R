@@ -4,7 +4,14 @@
 
 # user input ----------------------------
 
-cohort <- "Prostate"
+# args <- commandArgs(trailingOnly = F)
+# if (length(args) != 1) {
+#   print("Usage: R -f script.R --args <cohort>")
+# }
+# cohort <- args[1]
+
+# debug
+cohort <- "BrCa"
 
 # setup ----------------------------
 
@@ -239,29 +246,39 @@ uncode_data_column <- function(col_coded, mapping) {
 #' REDCap Data Dictionary (DD).
 #' 
 #' @param data Data frame of coded data
-#' @param dd Data dictionary data frame for REDCap cohort
+#' @param mappings Matrix with two columns, first containing a label and
+#' second columns a mapping string.  
+#' @param secondary_mappings Another mapping matrix that is used secondarily
+#' if the label is not found in the primary mapping matrix.
 #' @return Data frame of uncoded data.
 #' @example
-#' map_code_to_value(data = my_data, dd = dd)
-uncode_data <- function(df_coded, dd) {
-  
-  mappings <- parse_mappings(strs = dd[[config$column_name$variable_mapping]], 
-                             labels = dd[[config$column_name$variable_name]])
+#' map_code_to_value(data = my_data, mappings = mappings_dd)
+uncode_data <- function(df_coded, mappings, secondary_mappings = NA) {
   
   df_uncoded <- df_coded
   mapping_complete <- data.frame(codes = names(config$mapping$complete),
-                                 values = as.character(config$mapping$complete))
-  
+                                 values = as.character(config$mapping$complete),
+                                 stringsAsFactors = F)
+
   for (i in 1:ncol(df_coded)) {
     
     var_name <- get_root_variable_name(names(df_coded)[i])
-    idx_mapping <- which(names(mappings) == var_name)
     
-    if (length(idx_mapping)) {
+    if (length(which(names(mappings) == var_name))) {
+      
+      idx_mapping <- which(names(mappings) == var_name)
       
       if (var_name == names(df_coded)[i]) {
         df_uncoded[,i] <- uncode_data_column(col_coded = df_coded[,i], 
                                              mapping = mappings[[idx_mapping]])
+      }
+    } else if (length(which(names(secondary_mappings) == var_name))) {
+      
+      idx_mapping <- which(names(secondary_mappings) == var_name)
+      
+      if (var_name == names(df_coded)[i]) {
+        df_uncoded[,i] <- uncode_data_column(col_coded = df_coded[,i], 
+                                             mapping = secondary_mappings[[idx_mapping]])
       }
     } else if(grepl(pattern = "complete", x = var_name)) {
       df_uncoded[,i] <- uncode_data_column(col_coded = df_coded[,i], 
@@ -275,7 +292,7 @@ uncode_data <- function(df_coded, dd) {
   return(df_uncoded)
 }
 
-convert_string_to_date <- function(x, format = "%Y-%m_%d %H:%M") {
+convert_string_to_date <- function(x, format = "%Y-%m-%d %H:%M") {
   
   result <- x
   
@@ -289,7 +306,7 @@ convert_string_to_date <- function(x, format = "%Y-%m_%d %H:%M") {
     result[idx_19] <- format(ymd_hms(x[idx_19]), format)
   }
     
-  idx_16 <- which(nchar(x) == 16 & grepl(x = x, pattern = "-"))
+  idx_16 <- which(nchar(x) == 16 | nchar(x) == 15 & grepl(x = x, pattern = "-"))
   if (length(idx_16)) {
     result[idx_16] <- format(ymd_hm(x[idx_16]), format)
   }
@@ -310,12 +327,7 @@ format_rcc <- function(x, dd) {
   
   # modify row values
   x$redcap_repeat_instrument[which(is.na(x$redcap_repeat_instrument))] = "no-repeat"
-  x$drugs_drug_1[which(x$drugs_drug_1 == "Docetaxel (Taxotere,RP56976)")] = "Docetaxel(Taxotere,RP56976)"
-  x$drugs_drug_2[which(x$drugs_drug_2 == "Docetaxel (Taxotere,RP56976)")] = "Docetaxel(Taxotere,RP56976)"
-  x$drugs_drug_3[which(x$drugs_drug_3 == "Docetaxel (Taxotere,RP56976)")] = "Docetaxel(Taxotere,RP56976)"
-  x$drugs_drug_4[which(x$drugs_drug_4 == "Docetaxel (Taxotere,RP56976)")] = "Docetaxel(Taxotere,RP56976)"
-  x$drugs_drug_5[which(x$drugs_drug_5 == "Docetaxel (Taxotere,RP56976)")] = "Docetaxel(Taxotere,RP56976)"
-  
+
   # add missing columns
   site <- get_site_from_record_id(x$record_id)
   status <- rep("Enrolled", nrow(x))
@@ -372,14 +384,16 @@ for (i in 1:length(config$upload[[cohort]])) {
 # main ----------------------------
 
 # mappings
-mapping_dd <- parse_mappings(strs = dd[[config$column_name$variable_mapping]], 
+mappings_dd <- parse_mappings(strs = dd[[config$column_name$variable_mapping]], 
                                            labels = dd[[config$column_name$variable_name]])
-mapping_grs <- parse_mappings(strs = grs[,config$column_name$rs_value], 
+mappings_grs <- parse_mappings(strs = grs[,config$column_name$rs_value], 
                              labels = grs[,config$column_name$rs_label])
 
 # merge and uncode
 coded <- merge_datasets(data_upload)
-uncoded <- uncode_data(df_coded = coded, dd = dd)
+uncoded <- uncode_data(df_coded = coded, 
+                       mappings = mappings_grs,
+                       secondary_mappings = mappings_dd)
 rcc_from_uncoded <- format_rcc(uncoded, dd = dd)
 
 # validate ----------------------------
@@ -424,6 +438,7 @@ table(comp_val_result, useNA = "always")
 table(comp_na_result, useNA = "always")
 
 head(colnames(rcc)[which(!comp_val_result)], 10)
+head(colnames(rcc)[which(!comp_na_result)], 10)
 
 # later: write to file
 
