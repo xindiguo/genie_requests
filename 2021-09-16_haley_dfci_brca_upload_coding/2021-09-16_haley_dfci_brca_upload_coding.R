@@ -98,18 +98,25 @@ for (site in sites) {
 
 # main ----------------------------
 
-tab <- c()
+tab_drugs_ca <- c()
+tab_drugs_dc_reason <- c()
 for (site in sites) {
   
   var <- data_brca[[site]] %>% 
     filter(redcap_repeat_instrument == instrument) %>%
-    select('drugs_ca___1')
-  tab <- rbind(tab, c(cohort, site, get_table(unlist(var), levels = values)))
+    select("drugs_ca___1", "drugs_dc_reason___1")
+  
+  tab_drugs_ca  <- rbind(tab_drugs_ca, c(cohort, site, get_table(unlist(var$drugs_ca___1), 
+                                                                 levels = values)))
+  tab_drugs_dc_reason <-  rbind(tab_drugs_dc_reason, c(cohort, site, get_table(unlist(var$drugs_dc_reason___1), 
+                                                                        levels = values)))
 }
 
-colnames(tab)[1:2] <- c("cohort", "site")
+colnames(tab_drugs_ca)[1:2] <- c("cohort", "site")
+colnames(tab_drugs_dc_reason)[1:2] <- c("cohort", "site")
 
-print(tab)
+print(tab_drugs_ca)
+print(tab_drugs_dc_reason)
 
 # close out ----------------------------
 
