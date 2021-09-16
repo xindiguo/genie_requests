@@ -21,11 +21,9 @@ library(dplyr)
 
 # synapse
 synid_table_ca_drugs <- "syn21446703"
-synid_file_brca_dfci_0909 <- ""
 
 # config
 config <- read_yaml("config.yaml")
-
 
 # constants
 instrument <- "ca_directed_drugs"
@@ -89,20 +87,31 @@ get_table <- function(vec, levels) {
 
 # read ----------------------------
 
-data_brca <- list()
+data_current <- list()
+data_previous <- list()
 for (site in sites) {
-  data_brca[[site]] <- get_bpc_data_upload(cohort = "BrCa", 
+  data_current[[site]] <- get_bpc_data_upload(cohort = "BrCa", 
                                            site = "DFCI", 
-                                           obj = config$upload$BrCa[[site]])
+                                           obj = config$upload_current$BrCa[[site]])
+  
+  if (site != "VICC") {
+    data_previous[[site]] <- get_bpc_data_upload(cohort = "BrCa", 
+                                                 site = "DFCI", 
+                                                 obj = config$upload_previous$BrCa[[site]])
+  }
 }
+
+
 
 # main ----------------------------
 
 tab_drugs_ca <- c()
 tab_drugs_dc_reason <- c()
+p_tab_drugs_ca <- c()
+p_tab_drugs_dc_reason <- c()
 for (site in sites) {
   
-  var <- data_brca[[site]] %>% 
+  var <- data_current[[site]] %>% 
     filter(redcap_repeat_instrument == instrument) %>%
     select("drugs_ca___1", "drugs_dc_reason___1")
   
@@ -110,13 +119,37 @@ for (site in sites) {
                                                                  levels = values)))
   tab_drugs_dc_reason <-  rbind(tab_drugs_dc_reason, c(cohort, site, get_table(unlist(var$drugs_dc_reason___1), 
                                                                         levels = values)))
+  
+  if (site != "VICC") {
+    var <- data_previous[[site]] %>% 
+      filter(redcap_repeat_instrument == instrument) %>%
+      select("drugs_ca___1", "drugs_dc_reason___1")
+    
+    p_tab_drugs_ca  <- rbind(p_tab_drugs_ca, c(cohort, site, get_table(unlist(var$drugs_ca___1), 
+                                                                   levels = values)))
+    p_tab_drugs_dc_reason <-  rbind(p_tab_drugs_dc_reason, c(cohort, site, get_table(unlist(var$drugs_dc_reason___1), 
+                                                                                 levels = values)))
+    
+  }
 }
 
 colnames(tab_drugs_ca)[1:2] <- c("cohort", "site")
 colnames(tab_drugs_dc_reason)[1:2] <- c("cohort", "site")
+colnames(p_tab_drugs_ca)[1:2] <- c("cohort", "site")
+colnames(p_tab_drugs_dc_reason)[1:2] <- c("cohort", "site")
 
+# summary -------------------------------
+
+# current
+print("Current:")
 print(tab_drugs_ca)
 print(tab_drugs_dc_reason)
+
+# previous
+print("Previous:")
+print(p_tab_drugs_ca)
+print(p_tab_drugs_dc_reason)
+
 
 # close out ----------------------------
 
