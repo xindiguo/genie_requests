@@ -17,52 +17,62 @@ library(synapser)
 synLogin()
 
 # synapse
-synid_table_drug <- "syn21446703"
+synid_tables_drug <- c("syn21446703.35", "syn21446703.37")
 
 # parameters
 drug_names_check <- c("GDC0941", "MK2206")
 drug_names_control <- c("Investigational Drug", "Carboplatin")
 
 
-# read ----------------------------
-
-drug_columns <- c(paste0("drugs_drug_", c(1:5)), paste0("drugs_drug_oth_", c(1:5)))
-drug_columns_str <- paste0("'", paste0(drug_columns, collapse = "','"), "'")
-query <- glue("SELECT cohort, record_id, redcap_repeat_instance, redcap_data_access_group, {drug_columns_str} FROM {synid_table_drug}")
-data <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
-
 # main ----------------------------
 
-# real check
-res_check <- data %>%
-  filter(grepl(pattern = drug_names_check[1], x = drugs_drug_1) | grepl(pattern = drug_names_check[2], x = drugs_drug_1) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_2) | grepl(pattern = drug_names_check[2], x = drugs_drug_2) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_3) | grepl(pattern = drug_names_check[2], x = drugs_drug_3) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_4) | grepl(pattern = drug_names_check[2], x = drugs_drug_4) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_5) | grepl(pattern = drug_names_check[2], x = drugs_drug_5) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_oth_1) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_1) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_oth_2) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_2) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_oth_3) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_3) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_oth_4) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_4) |
-           grepl(pattern = drug_names_check[1], x = drugs_drug_oth_5) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_5))
-
-# control
-res_control <- data %>%
-  filter(grepl(pattern = drug_names_control[1], x = drugs_drug_1) | grepl(pattern = drug_names_control[2], x = drugs_drug_1) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_2) | grepl(pattern = drug_names_control[2], x = drugs_drug_2) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_3) | grepl(pattern = drug_names_control[2], x = drugs_drug_3) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_4) | grepl(pattern = drug_names_control[2], x = drugs_drug_4) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_5) | grepl(pattern = drug_names_control[2], x = drugs_drug_5) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_oth_1) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_1) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_oth_2) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_2) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_oth_3) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_3) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_oth_4) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_4) |
-            grepl(pattern = drug_names_control[1], x = drugs_drug_oth_5) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_5))
+for (synid_table_drug in synid_tables_drug) {
+  
+  drug_columns <- c(paste0("drugs_drug_", c(1:5)), paste0("drugs_drug_oth_", c(1:5)))
+  drug_columns_str <- paste0("'", paste0(drug_columns, collapse = "','"), "'")
+  query <- glue("SELECT cohort, record_id, redcap_repeat_instance, redcap_data_access_group, {drug_columns_str} FROM {synid_table_drug}")
+  data <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
+  
+  # real check
+  res_check <- data %>%
+    filter(grepl(pattern = drug_names_check[1], x = drugs_drug_1) | grepl(pattern = drug_names_check[2], x = drugs_drug_1) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_2) | grepl(pattern = drug_names_check[2], x = drugs_drug_2) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_3) | grepl(pattern = drug_names_check[2], x = drugs_drug_3) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_4) | grepl(pattern = drug_names_check[2], x = drugs_drug_4) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_5) | grepl(pattern = drug_names_check[2], x = drugs_drug_5) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_oth_1) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_1) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_oth_2) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_2) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_oth_3) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_3) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_oth_4) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_4) |
+             grepl(pattern = drug_names_check[1], x = drugs_drug_oth_5) | grepl(pattern = drug_names_check[2], x = drugs_drug_oth_5))
+  
+  # control
+  res_control <- data %>%
+    filter(grepl(pattern = drug_names_control[1], x = drugs_drug_1) | grepl(pattern = drug_names_control[2], x = drugs_drug_1) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_2) | grepl(pattern = drug_names_control[2], x = drugs_drug_2) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_3) | grepl(pattern = drug_names_control[2], x = drugs_drug_3) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_4) | grepl(pattern = drug_names_control[2], x = drugs_drug_4) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_5) | grepl(pattern = drug_names_control[2], x = drugs_drug_5) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_oth_1) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_1) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_oth_2) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_2) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_oth_3) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_3) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_oth_4) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_4) |
+             grepl(pattern = drug_names_control[1], x = drugs_drug_oth_5) | grepl(pattern = drug_names_control[2], x = drugs_drug_oth_5))
+  
+  
+  
+  print(glue("{synid_table_drug}: Number of rows in control: {nrow(res_control)}"))
+  print(glue("{synid_table_drug}: Number of rows in check: {nrow(res_check)}"))
+  
+  if(nrow(res_check) > 0) {
+    to_print <- res_check %>% 
+      select(cohort, record_id, redcap_repeat_instance, redcap_data_access_group)
+    print(to_print)
+  }
+  print("------")
+}
 
 # close out ----------------------------
-
-print(glue("Number of rows in control: {nrow(res_control)}"))
-print(glue("Number of rows in check: {nrow(res_check)}"))
 
 toc = as.double(Sys.time())
 print(glue("Runtime: {round(toc - tic)} s"))
