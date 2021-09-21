@@ -17,7 +17,7 @@ library(synapser)
 synLogin()
 
 # synapse
-synid_folder_staging <- "syn26127146"
+synid_folder_ids <- "syn20781633"
 
 # parameters
 cohort_sites <- list()
@@ -28,13 +28,15 @@ cohort_sites[["NSCLC"]] <- c("DFCI", "MSK", "UHN", "VICC")
 cohort_sites[["PANC"]] <- c("DFCI", "MSK", "UHN", "VICC")
 cohort_sites[["Prostate"]] <- c("DFCI", "MSK", "UHN", "VICC")
 
+# debugging
+debug = TRUE
 
 # functions ----------------------------
 
-get_synapse_folder_children <- function(synapse_id) {
+get_synapse_folder_children <- function(synapse_id, 
+                                        include_types=list("folder", "file", "table", "link", "entityview", "dockerrepo")) {
   
-  
-  ent <- as.list(synGetChildren(synapse_id))
+  ent <- as.list(synGetChildren(synapse_id, includeTypes = include_types))
   
   children <- c()
   
@@ -50,7 +52,7 @@ get_synapse_folder_children <- function(synapse_id) {
 create_synapse_folder <- function(name, parentId) {
   
   # check if folder already exists
-  children <- get_synapse_folder_children(parentId)
+  children <- get_synapse_folder_children(parentId, include_types = list("folder"))
   if(is.element(name, names(children))) {
     return(as.character(children[name]))
   }
@@ -62,17 +64,56 @@ create_synapse_folder <- function(name, parentId) {
   return(ent$id)
 }
 
+get_synid_folder_cohort_site <- function(synid_folder_root, cohort, site) {
+  
+  synid_folder_children <- get_synapse_folder_children(synid_folder_root, include_types = list("folder"))
+  synid_folder_cohort <- as.character(synid_folder_children[[cohort]])
+  
+  synid_folder_children <- get_synapse_folder_children(synid_folder_cohort, include_types = list("folder"))
+  synid_folder_site <- as.character(synid_folder_children[[site]])
+  
+  return(synid_folder_site)
+}
+
 # main ----------------------------
 
+# create folder structure
 synid_folders <- matrix(NA, nrow = length(cohort_sites), ncol = max(unlist(lapply(cohort_sites, length))) + 1, 
                         dimnames = list(sort(names(cohort_sites)), c("root", sort(unique(unlist(cohort_sites))))))
-
 for (cohort in names(cohort_sites)) {
   
-  synid_folders[cohort, "root"] <- create_synapse_folder(name = cohort, parentId = synid_folder_staging)
+  synid_folders[cohort, "root"] <- create_synapse_folder(name = cohort, parentId = synid_folder_ids)
   
   for (site in cohort_sites[[cohort]]) {
     synid_folders[cohort,site] <- create_synapse_folder(name = site, parentId = synid_folders[cohort, "root"])
+  }
+}
+
+# sort files
+synid_file_children <- get_synapse_folder_children(synapse_id = synid_folder_ids, 
+                                                            include_types = list("file"))
+for (synid_file_child in synid_file_children) {
+  
+  ann <- synGetAnnotations(synGet(as.character(synid_file_child)))
+  ann_names <- names(ann)
+  
+  if (!length(setdiff(c("cohort", "site"), ann_names))) {
+    cohort <- ann$cohort[[1]]
+    site <- ann$site[[1]]
+    
+    synid_dest <- get_synid_folder_cohort_site(synid_folder_root = synid_folder_ids,
+                                 cohort = cohort,
+                                 site = site)
+    res <- synMove(entity = as.character(synid_file_child), new_parent = synid_dest)
+    
+    if (debug) {
+      print(glue("File '{names(synid_file_child)}' ({as.character(synid_file_child)}) moved to {synid_dest}."))
+    }
+    
+  } else {
+    if (debug) {
+      print(glue("File '{names(synid_file_child)}' ({as.character(synid_file_child)}) staying..."))
+    }
   }
 }
 
