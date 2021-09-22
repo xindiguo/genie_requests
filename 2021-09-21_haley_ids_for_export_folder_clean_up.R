@@ -21,12 +21,12 @@ synid_folder_ids <- "syn20781633"
 
 # parameters
 cohort_sites <- list()
-cohort_sites[["BLADDER"]] <- c("DFCI", "MSK", "UHN", "VICC")
-cohort_sites[["BrCa"]] <- c("DFCI", "MSK", "VICC")
-cohort_sites[["CRC"]] <- c("DFCI", "MSK", "VICC")
-cohort_sites[["NSCLC"]] <- c("DFCI", "MSK", "UHN", "VICC")
-cohort_sites[["PANC"]] <- c("DFCI", "MSK", "UHN", "VICC")
-cohort_sites[["Prostate"]] <- c("DFCI", "MSK", "UHN", "VICC")
+cohort_sites[["BLADDER"]] <- c("all", "DFCI", "MSK", "UHN", "VICC")
+cohort_sites[["BrCa"]] <- c("all", "DFCI", "MSK", "VICC")
+cohort_sites[["CRC"]] <- c("all", "DFCI", "MSK", "VICC")
+cohort_sites[["NSCLC"]] <- c("all", "DFCI", "MSK", "UHN", "VICC")
+cohort_sites[["PANC"]] <- c("all", "DFCI", "MSK", "UHN", "VICC")
+cohort_sites[["Prostate"]] <- c("all", "DFCI", "MSK", "UHN", "VICC")
 
 # debugging
 debug = TRUE
@@ -98,8 +98,15 @@ for (synid_file_child in synid_file_children) {
   ann_names <- names(ann)
   
   if (!length(setdiff(c("cohort", "site"), ann_names))) {
+    
     cohort <- ann$cohort[[1]]
     site <- ann$site[[1]]
+    
+    if (cohort == "PANCREAS") {
+      cohort = "PANC"
+    } else if (cohort == "PROSTATE") {
+      cohort = "Prostate"
+    }
     
     synid_dest <- get_synid_folder_cohort_site(synid_folder_root = synid_folder_ids,
                                  cohort = cohort,
@@ -107,12 +114,12 @@ for (synid_file_child in synid_file_children) {
     res <- synMove(entity = as.character(synid_file_child), new_parent = synid_dest)
     
     if (debug) {
-      print(glue("File '{names(synid_file_child)}' ({as.character(synid_file_child)}) moved to {synid_dest}."))
+      cat(glue("File '{names(synid_file_child)}' ({as.character(synid_file_child)}) moved to {synid_dest}."), "\n")
     }
     
   } else {
     if (debug) {
-      print(glue("File '{names(synid_file_child)}' ({as.character(synid_file_child)}) staying..."))
+      cat(glue("File '{names(synid_file_child)}' ({as.character(synid_file_child)}) not moved"), "\n")
     }
   }
 }
