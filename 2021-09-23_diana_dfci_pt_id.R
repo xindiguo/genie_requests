@@ -22,7 +22,6 @@ record_id <- "GENIE-DFCI-093951"
 
 df_retracted <- read.csv(synGet(synid_file_retracted)$path, stringsAsFactors = F)
 
-
 # main ----------------------------
 
 print(df_retracted %>% 
