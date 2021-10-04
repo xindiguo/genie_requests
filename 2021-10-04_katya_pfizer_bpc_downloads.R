@@ -24,9 +24,9 @@ synid_folder_nsclc <- "syn21459571"
 
 # parameters
 config_file <- "db-config.yml"
-query_type = "filedownloadrecord"
-start_date = "2021-07-01"
-end_date = "2021-10-04"
+query_type <- "filedownloadrecord"
+start_date <- "2021-07-01"
+end_date <- "2021-10-04"
 
 # functions ----------------------------
 
@@ -156,8 +156,6 @@ summ_pfizer <- query_pfizer %>%
   count() %>%
   rename(n_downloads = n) %>%
   select(user_name, cohort, n_downloads)
-
-
 
 # write --------------------------------
 
