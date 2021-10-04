@@ -18,6 +18,9 @@ synLogin()
 synid_file_users <- "syn26263016"
 synid_project_bpc <- "syn21226493"
 synid_folder_request <- "syn26263015"
+synid_folder_brca <- "syn24981907"
+synid_folder_crc <- "syn23561875"
+synid_folder_nsclc <- "syn21459571"
 
 # parameters
 config_file <- "db-config.yml"
@@ -80,6 +83,28 @@ save_to_synapse <- function(path,
   return(T)
 }
 
+#' Depth first search for tree traversal of root folder directory.
+#' 
+#' @param synid_root Synapse ID of the root folder/project.
+#' @return Vector of Synapse IDs of all descendants of the root 
+#' @example 
+#' traverse("syn12345")
+traverse <- function(synid_root) {
+  
+  synid_folders <- c()
+  synid_children <- as.list(synGetChildren(synid_root, includeTypes = list("folder", "file")))
+  
+  if(!length(synid_children)) {
+    return(synid_root)
+  }
+  
+  for (synid_child in synid_children) {
+    synid_folders <- append(synid_folders, traverse(synid_child$id))
+  }
+  
+  return(c(synid_root, synid_folders))
+}
+
 # connect to database ---------------
 
 config <- yaml.load_file(config_file)
@@ -94,6 +119,10 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(),
 # read -----------------------------
 
 user_names <- as.character(unlist(get_synapse_entity_data_in_csv(synid_file_users, header = F)))
+
+brca <- traverse(synid_folder_brca)
+crc <- traverse(synid_folder_crc)
+nsclc <- traverse(synid_folder_nsclc)
 
 # main ----------------------------
 
@@ -116,36 +145,41 @@ query_pfizer <- query_bpc %>%
   filter(userId %in% user_ids) %>%
   mutate(user_name = user_names[userId]) %>%
   mutate(synapse_id = paste0("syn", id)) %>%
+  mutate(cohort = case_when(is.element(synapse_id, brca) ~ "BrCa",
+                            is.element(synapse_id, crc) ~ "CRC",
+                            is.element(synapse_id, nsclc) ~ "NSCLC")) %>%
   rename(file_name = NAME) %>%
-  select(user_name, date, synapse_id, file_name)
+  select(user_name, date, cohort, synapse_id, file_name)
   
 summ_pfizer <- query_pfizer %>%
-  group_by(user_name) %>%
+  group_by(user_name, cohort) %>%
   count() %>%
   rename(n_downloads = n) %>%
-  select(user_name, n_downloads)
+  select(user_name, cohort, n_downloads)
+
+
 
 # write --------------------------------
 
+file_bpc <- glue("{start_date}_{end_date}_{query_type}_bpc_all.csv")
+write.csv(query_bpc, row.names = F, file = file_bpc)
 file_all <- glue("{start_date}_{end_date}_{query_type}_pfizer_all.csv")
 write.csv(query_pfizer, row.names = F, file = file_all)
 file_summ <- glue("{start_date}_{end_date}_{query_type}_pfizer_summary.csv")
 write.csv(summ_pfizer, row.names = F, file = file_summ)
 
 save_to_synapse(path = file_all, 
-                parent_id = synid_folder_request, 
-                file_name = file_raw, 
+                parent_id = synid_folder_request,
                 prov_name = "Pfizer user BPC downloads", 
                 prov_desc = "All downloads from 2021-07-01 to 2021-10-04 for Pfizer users from the BPC project", 
                 prov_used = synid_file_users, 
-                prov_exec = "")
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-04_katya_pfizer_bpc_downloads.R")
 save_to_synapse(path = file_summ, 
                 parent_id = synid_folder_request, 
-                file_name = file_raw, 
                 prov_name = "Pfizer user BPC download summary", 
                 prov_desc = "Summary of downloads from 2021-07-01 to 2021-10-04 for Pfizer users from the BPC project", 
                 prov_used = synid_file_users, 
-                prov_exec = "")
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-04_katya_pfizer_bpc_downloads.R")
 
 file.remove(file_all)
 file.remove(file_summ)
