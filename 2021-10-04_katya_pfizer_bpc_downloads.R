@@ -25,7 +25,8 @@ synid_folder_nsclc <- "syn21459571"
 # parameters
 config_file <- "db-config.yml"
 query_type <- "filedownloadrecord"
-start_date <- "2021-07-01"
+#start_date <- "2021-04-01"
+start_date <- "2021-01-01"
 end_date <- "2021-10-04"
 
 # functions ----------------------------
@@ -120,9 +121,17 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(),
 
 user_names <- as.character(unlist(get_synapse_entity_data_in_csv(synid_file_users, header = F)))
 
+# synapse folder traverses to infer cohort for files
 brca <- traverse(synid_folder_brca)
 crc <- traverse(synid_folder_crc)
 nsclc <- traverse(synid_folder_nsclc)
+
+# get downloads for each user
+query_bpc <- report_data_query(con = con, 
+                               project_id = synid_project_bpc,
+                               query_type = query_type,
+                               start_date = start_date,
+                               end_date = end_date)
 
 # main ----------------------------
 
@@ -133,13 +142,6 @@ for (user_name in user_names) {
 }
 user_names <- setNames(user_names, user_ids)
 
-# get downloads for each user
-query_bpc <- report_data_query(con = con, 
-                               project_id = synid_project_bpc,
-                               query_type = query_type,
-                               start_date = start_date,
-                               end_date = end_date)
-
 # get downloads for pfizer user ids
 query_pfizer <- query_bpc %>%
   filter(userId %in% user_ids) %>%
@@ -147,15 +149,18 @@ query_pfizer <- query_bpc %>%
   mutate(synapse_id = paste0("syn", id)) %>%
   mutate(cohort = case_when(is.element(synapse_id, brca) ~ "BrCa",
                             is.element(synapse_id, crc) ~ "CRC",
-                            is.element(synapse_id, nsclc) ~ "NSCLC")) %>%
+                            is.element(synapse_id, nsclc) ~ "NSCLC",
+                            TRUE ~ "GENIE")) %>%
   rename(file_name = NAME) %>%
-  select(user_name, date, cohort, synapse_id, file_name)
+  select(user_name, date, cohort, file_name, synapse_id) %>%
+  arrange(user_name, date, cohort, file_name)
   
 summ_pfizer <- query_pfizer %>%
   group_by(user_name, cohort) %>%
   count() %>%
   rename(n_downloads = n) %>%
-  select(user_name, cohort, n_downloads)
+  select(user_name, cohort, n_downloads) %>%
+  arrange(user_name, cohort)
 
 # write --------------------------------
 
@@ -179,10 +184,12 @@ save_to_synapse(path = file_summ,
                 prov_used = synid_file_users, 
                 prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-04_katya_pfizer_bpc_downloads.R")
 
+# close out ----------------------------
+
+# clean up
 file.remove(file_all)
 file.remove(file_summ)
-
-# close out ----------------------------
+file.remove(file_bpc)
 
 # disconnect from database
 dbDisconnect(con)
