@@ -19,8 +19,8 @@ synLogin()
 synid_file_prostate_dd <- "syn26260844"
 
 # parameters
-col_rm <- c("rt_phases", "rt_type_p1", "rt_planning_p1", "rt_dose_p1", "rt_site_p1___1-96", "rt_type_p2", "rt_planning_p2", 
-"rt_dose_p2", "rt_site_p2___1-96", "rt_type_p3", "rt_planning_p3", "rt_dose_p3", "rt_site_p3___1-96")
+col_rm <- c("rt_phases", "rt_type_p1", "rt_planning_p1", "rt_dose_p1", "rt_site_p1", "rt_type_p2", "rt_planning_p2", 
+"rt_dose_p2", "rt_site_p2", "rt_type_p3", "rt_planning_p3", "rt_dose_p3", "rt_site_p3")
 
 # functions ----------------------------
 
@@ -55,7 +55,7 @@ dd <- get_synapse_entity_data_in_csv(synapse_id = synid_file_prostate_dd,
 n_to_rm <- length(col_rm)
 n_are_rm <- length(setdiff(col_rm, dd$`Variable / Field Name`))
 
-print(n_to_rm == n_are_rm)
+print(glue("Columns to be removed are not present in current DD: {n_to_rm == n_are_rm}"))
 
 # close out ----------------------------
 
