@@ -16,7 +16,8 @@ library(synapser)
 synLogin()
 
 # synapse
-synid_file_prostate_dd <- "syn26260844"
+synid_file_prostate_dd_curr <- "syn26260844"
+synid_file_prostate_dd_prev <- "syn25570252"
 
 # parameters
 col_rm <- c("rt_phases", "rt_type_p1", "rt_planning_p1", "rt_dose_p1", "rt_site_p1", "rt_type_p2", "rt_planning_p2", 
@@ -42,20 +43,23 @@ get_synapse_entity_data_in_csv <- function(synapse_id,
   return(data)
 }
 
-
 # read ----------------------------
 
-dd <- get_synapse_entity_data_in_csv(synapse_id = synid_file_prostate_dd, 
+dd_curr <- get_synapse_entity_data_in_csv(synapse_id = synid_file_prostate_dd_curr, 
                                      na.strings = c(""), 
                                      header = T) 
-
+dd_prev <- get_synapse_entity_data_in_csv(synapse_id = synid_file_prostate_dd_prev, 
+                                          na.strings = c(""), 
+                                          header = T)
 
 # main ----------------------------
 
-n_to_rm <- length(col_rm)
-n_are_rm <- length(setdiff(col_rm, dd$`Variable / Field Name`))
+n_rm <- length(col_rm)
+n_curr <- length(intersect(dd_curr$`Variable / Field Name`, col_rm))
+n_prev <- length(intersect(dd_prev$`Variable / Field Name`, col_rm))
 
-print(glue("Columns to be removed are not present in current DD: {n_to_rm == n_are_rm}"))
+print(glue("Number of columns present in previous DD: {n_prev} of {n_rm}"))
+print(glue("Number of columns present in current DD: {n_curr} of {n_rm}"))
 
 # close out ----------------------------
 
