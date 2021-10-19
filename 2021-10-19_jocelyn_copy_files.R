@@ -20,9 +20,9 @@ synid_file_ucsf_data <- "syn26376139"
 synid_folder_dest <- "syn26023438"
 
 # provenance
-prov_name <- 'copy file'
-prov_desc <- 'copy file to Synapse directory for delivery'
-prov_exec <- 'https://github.com/hhunterzinck/genie_requests/2021-10-19_jocelyn_copy_files.R'
+prov_name <- "copy file"
+prov_desc <- "copy file to Synapse directory for delivery"
+prov_exec <- "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-19_jocelyn_copy_files.R"
 
 # functions ----------------------------
 
@@ -80,21 +80,19 @@ save_to_synapse(path = ent_duke$path,
                 file_name = grep(pattern = "DUKE", x = names(synid_folder_children), value = T),
                 prov_name = prov_name, 
                 prov_desc = prov_desc, 
-                prov_used = synid_duke_data, 
+                prov_used = synid_file_duke_data, 
                 prov_exec = prov_exec)
 
 # ucsf
 ent_ucsf <- synGet(synid_file_ucsf_data)
 save_to_synapse(path = ent_ucsf$path, 
-                parent_id = synid_file_ucsf_dest,
-                file_name = grep(pattern = "DUKE", x = names(synid_folder_children), value = T),
+                parent_id = synid_folder_dest,
+                file_name = grep(pattern = "UCSF", x = names(synid_folder_children), value = T),
                 prov_name = prov_name, 
                 prov_desc = prov_desc, 
-                prov_used = synid_ucsf_data, 
+                prov_used = synid_file_ucsf_data, 
                 prov_exec = prov_exec)
   
-# TODO update file names
-
 # close out ----------------------------
 
 toc = as.double(Sys.time())
