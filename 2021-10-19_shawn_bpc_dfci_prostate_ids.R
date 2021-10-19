@@ -71,7 +71,7 @@ save_to_synapse(path = file_output,
                 prov_name = "dfci prostate ids", 
                 prov_desc = "Extract current list of records IDs for the BPC Prostate cohort from DFCI", 
                 prov_used = synid_table_pt, 
-                prov_exec = "")
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-19_shawn_bpc_dfci_prostate_ids.R")
 
 file.remove(file_output)
 
