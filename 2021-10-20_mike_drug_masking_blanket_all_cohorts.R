@@ -142,10 +142,9 @@ for (i in 1:length(synid_folders)) {
   for (idx in idx_synid_files_csv) {
     
     site <- get_site(names(synid_folder_children)[idx])
-    datas[[names(synid_files)[i]]][[site]] <- get_synapse_entity_data_in_csv(as.character(synid_folder_children[idx]))
+    datas[[names(synid_folders)[i]]][[site]] <- get_synapse_entity_data_in_csv(as.character(synid_folder_children[idx]))
   }
 }
-
 
 # main ----------------------------
 
@@ -177,7 +176,7 @@ save_to_synapse(path = file_output,
                 prov_name = "count unmasked drugs", 
                 prov_desc = "Number of unique unmasked drug names in regimens marked as in a clinical trial", 
                 prov_used = as.character(synid_folders), 
-                prov_exec = )
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-20_mike_drug_masking_blanket_all_cohorts.R")
 
 file.remove(file_output)
 
