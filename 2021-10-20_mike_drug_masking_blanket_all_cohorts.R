@@ -89,7 +89,7 @@ get_site <- function(x) {
   return("VICC")
 }
 
-get_number_ct_unmasked <- function(data) {
+get_ct_unmasked_drug_unique_count <- function(data) {
   reg_ct <- as.character(unlist(data %>%
                                   filter(drugs_ct_yn == "Yes") %>%
                                   select(drugs_in_regimen) %>% 
@@ -99,6 +99,29 @@ get_number_ct_unmasked <- function(data) {
   drugs_ct <- drugs_ct[-which(drugs_ct == "Investigational Drug")]
   
   return(length(drugs_ct))
+}
+
+get_ct_unmasked_drug_instance_count <- function(data) {
+  
+  reg_all <- as.character(unlist(data %>%
+                                   filter(drugs_ct_yn == "Yes") %>%
+                                   select(drugs_in_regimen)))
+  
+  drugs_all <- unlist(strsplit(reg_all, split = ", "))
+  drugs_all <- drugs_all[-which(drugs_all == "Investigational Drug")]
+  
+  return(length(drugs_all))
+}
+
+get_all_unmasked_drug_instance_count <- function(data) {
+  
+  reg_all <- as.character(unlist(data %>%
+                                   select(drugs_in_regimen)))
+  
+  drugs_all <- unlist(strsplit(reg_all, split = ", "))
+  drugs_all <- drugs_all[-which(drugs_all == "Investigational Drug")]
+  
+  return(length(drugs_all))
 }
 
 save_to_synapse <- function(path, 
@@ -152,34 +175,47 @@ for (i in 1:length(synid_folders)) {
 
 cohorts <- sort(names(datas))
 sites <- sort(unique(unlist(lapply(datas, names))))
-res <- matrix(NA, nrow = length(cohorts), ncol = length(sites),
+res_unique_count <- matrix(NA, nrow = length(cohorts), ncol = length(sites),
               dimnames = list(cohorts, sites))
+res_instance_perc <- matrix(NA, nrow = length(cohorts), ncol = length(sites),
+                           dimnames = list(cohorts, sites))
 
-for (i in 1:nrow(res)) {
-  for (j in 1:ncol(res)) {
+for (i in 1:nrow(res_unique_count)) {
+  for (j in 1:ncol(res_unique_count)) {
     
     cohort <- cohorts[i]
     site <- sites[j]
     data <- datas[[cohort]][[site]]
     
     if (!is.null(data)) {
-      res[i,j] <- get_number_ct_unmasked(data)
+      res_unique_count[i,j] <- get_ct_unmasked_drug_unique_count(data)
+      res_instance_perc[i,j] <- round(get_ct_unmasked_drug_instance_count(data) / get_all_unmasked_drug_instance_count(data) * 100.0, 2)
     }
   }
 }
 
 # write --------------------------------
 
-file_output <- "summary_unmasked_drug_count_in_ct_regimen.csv"
-write.csv(res, file = file_output)
-
+# write unique counts
+file_output <- "summary_unmasked_drug_unique_count_in_ct_regimen.csv"
+write.csv(res_unique_count, file = file_output)
 save_to_synapse(path = file_output, 
                 parent_id = synid_folder_output, 
                 prov_name = "count unmasked drugs", 
                 prov_desc = "Number of unique unmasked drug names in regimens marked as in a clinical trial", 
                 prov_used = as.character(synid_folders), 
                 prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-20_mike_drug_masking_blanket_all_cohorts.R")
+file.remove(file_output)
 
+# write instance percentages
+file_output <- "summary_unmasked_drug_instance_perc_in_ct_regimen.csv"
+write.csv(res_instance_perc, file = file_output)
+save_to_synapse(path = file_output, 
+                parent_id = synid_folder_output, 
+                prov_name = "percentage unmasked drugs", 
+                prov_desc = "Percentage of instances of unmasked drug names in regimens marked as in a clinical trial out of all instances of drugs mentioned", 
+                prov_used = as.character(synid_folders), 
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-20_mike_drug_masking_blanket_all_cohorts.R")
 file.remove(file_output)
 
 # close out ----------------------------
