@@ -13,7 +13,7 @@ library(synapser)
 synLogin()
 
 # synapse
-synid_folder_output <- "syn26162727"
+synid_folder_output <- "syn26380175"
 synid_folders <- c()
 synid_folders["BrCa"]<- "syn26195593"
 synid_folders["CRC"]<- "syn26132942"
@@ -95,6 +95,7 @@ get_number_ct_unmasked <- function(data) {
                                   distinct()))
   
   drugs_ct <- unique(unlist(strsplit(reg_ct, split = ", ")))
+  drugs_ct <- drugs_ct[-which(drugs_ct == "Investigational Drug")]
   
   return(length(drugs_ct))
 }
@@ -168,7 +169,7 @@ for (i in 1:nrow(res)) {
 
 # write --------------------------------
 
-file_output <- "2021-10-20_unmasked_drug_count_in_ct_regimen.csv"
+file_output <- "summary_unmasked_drug_count_in_ct_regimen.csv"
 write.csv(res, file = file_output)
 
 save_to_synapse(path = file_output, 
