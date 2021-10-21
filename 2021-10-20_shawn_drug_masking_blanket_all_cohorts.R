@@ -17,7 +17,8 @@ synid_folder_output <- "syn26380175"
 synid_folders <- c()
 synid_folders["BrCa"]<- "syn26195593"
 synid_folders["CRC"]<- "syn26132942"
-synid_folders["Prostate"]<- "syn26256984"
+synid_folders["Prostate"] <- "syn26256984"
+synid_folders["NSCLC"] <- "syn26380225"
 
 # functions ----------------------------
 
