@@ -187,7 +187,7 @@ for (site in names(res)) {
                   prov_name = "count unmasked drugs",
                   prov_desc = "Number of unmasked drug name instances in regimens marked as in a clinical trial",
                   prov_used = as.character(synid_folders),
-                  prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-20_mike_drug_masking_blanket_all_cohorts.R")
+                  prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-20_shawn_drug_masking_blanket_all_cohorts.R")
   
   file.remove(file_output)
 }
