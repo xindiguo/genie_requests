@@ -75,7 +75,7 @@ save_to_synapse(path = entity$path,
                 prov_name = "copy file", 
                 prov_desc = "copy file from upload to sponsor delivery folder", 
                 prov_used = synid_file_source, 
-                prov_exec = "")
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-26_jocelyn_move_file.R")
 
 # close out ----------------------------
 
