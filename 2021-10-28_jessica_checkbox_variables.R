@@ -137,7 +137,7 @@ save_to_synapse(path = file_local,
                 prov_name = "checkbox choice counts", 
                 prov_desc = "checkbox variable counts in the latest BLADDER BPC data dictionary", 
                 prov_used = synid_file_dd, 
-                prov_exec = "") 
+                prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-10-28_jessica_checkbox_variables.R") 
   
 file.remove(file_local)
 
