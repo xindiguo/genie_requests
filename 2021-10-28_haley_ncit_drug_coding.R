@@ -175,14 +175,6 @@ if (length(idx)) {
   print("PASS: no unmapped drug names!")
 }
 
-# data %>%
-#   filter(cohort == my_cohort) %>%
-#   filter(redcap_ca_index == "Yes") %>%
-#   filter(!grepl(pattern = "Investigational Drug", x = regimen_drugs)) %>%
-#   filter(!grepl(pattern = "Other", x = regimen_drugs)) %>%
-#   filter(grepl(pattern = "Clinical Trial Drug not specified", x = regimen_drugs)) %>%
-#   select(cohort, record_id, redcap_repeat_instance, regimen_drugs)
-
 # close out ----------------------------
 
 toc = as.double(Sys.time())
