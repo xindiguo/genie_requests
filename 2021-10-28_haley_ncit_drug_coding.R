@@ -12,7 +12,7 @@ library(synapser)
 synLogin()
 
 # parameters
-cohort = "Prostate"
+my_cohort <- "Prostate"
 
 # synapse
 synid_table_prissmm <- "syn22684834"
@@ -91,21 +91,34 @@ shorten_drug_names <- function(full_drug_name) {
   return(trim(unlist(lapply(strsplit(x = full_drug_name, split = "(", fixed = T), head, n = 1))))
 }
 
-get_drug_map <- function(dd) {
+get_drug_map <- function(primary, secondary = NULL) {
   
-  var_names <- c(paste0("drugs_drug_", c(1:5)), paste0("drugs_drug_oth", c(1:5)))
+  
   choice_code <- c()
   choice_label <- c()
+  dictionaries <- list()
   
+  if (is.null(secondary)) {
+    dictionaries <- list(primary)
+  } else {
+    dictionaries <- list(primary, secondary)
+  }
+  
+  var_names <- c(paste0("drugs_drug_", c(1:5)), paste0("drugs_drug_oth", c(1:5)))
   for (var_name in var_names) {
-    choice_str <- unlist(dd %>% 
-                           filter(`Variable / Field Name` == "drugs_drug_1") %>%
-                           select(`Choices, Calculations, OR Slider Labels`))
-    choice_code <- c(choice_code, 
-                     trim(unlist(lapply(strsplit(strsplit(choice_str, split = "\\|")[[1]], split = ", "), head, n = 1))))
     
-    choice_value <- trim(unlist(lapply(strsplit(strsplit(choice_str, split = "\\|")[[1]], split = ", "), function(x) {return(x[2])})))
-    choice_label <- c(choice_label, shorten_drug_names(choice_value))
+    for (obj in dictionaries) {
+      choice_str <- unlist(obj %>% 
+                             filter(`Variable / Field Name` == "drugs_drug_1") %>%
+                             select(`Choices, Calculations, OR Slider Labels`))
+      choice_str <- gsub(pattern = "\"", replacement = "", x = choice_str)
+      
+      choice_code <- c(choice_code, 
+                       trim(unlist(lapply(strsplit(strsplit(choice_str, split = "\\|")[[1]], split = ", "), head, n = 1))))
+      
+      choice_value <- trim(unlist(lapply(strsplit(strsplit(choice_str, split = "\\|")[[1]], split = ", "), function(x) {return(x[2])})))
+      choice_label <- c(choice_label, shorten_drug_names(choice_value))
+    }
   }
   
   map <- setNames(choice_code, choice_label)
@@ -127,17 +140,20 @@ get_regimen_abbrev <- function(regimen, map) {
 
 # read ----------------------------
 
-synid_file_dd <- get_bpc_synid_prissmm(synid_table_prissmm, cohort = cohort,
+synid_file_dd <- get_bpc_synid_prissmm(synid_table_prissmm, cohort = my_cohort,
                                         file_name = "Data Dictionary non-PHI")
 dd <- get_synapse_entity_data_in_csv(synid_file_dd)
+
+grs <- get_synapse_entity_data_in_csv(synid_file_grs)
+colnames(grs) <- c("Variable / Field Name", "Choices, Calculations, OR Slider Labels")
 
 data <- get_synapse_entity_data_in_csv(synid_file_drug)
 
 # main ----------------------------
 
-map <- get_drug_map(dd = dd)
+map <- get_drug_map(primary = grs, secondary = dd)
 u_regimen <- unlist(data %>% 
-  filter(cohort == cohort) %>%
+  filter(cohort == my_cohort) %>%
   filter(redcap_ca_index == "Yes") %>%
   filter(!grepl(pattern = "Investigational Drug", x = regimen_drugs)) %>%
   filter(!grepl(pattern = "Other", x = regimen_drugs)) %>%
@@ -147,6 +163,16 @@ u_regimen <- unlist(data %>%
 regimen_abbrev <- c()
 for (i in 1:length(u_regimen)) {
   regimen_abbrev[i] <- get_regimen_abbrev(u_regimen[i], map = map)
+}
+
+# validation --------------------
+
+idx <- grep(pattern = "NA", x = regimen_abbrev)
+if (length(idx)) {
+  print("ISSUE: unmapped drug names found")
+  print(cbind(regimen_abbrev[idx], u_regimen[idx]))
+} else {
+  print("PASS: no unmapped drug names!")
 }
 
 # close out ----------------------------
