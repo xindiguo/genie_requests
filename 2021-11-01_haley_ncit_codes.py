@@ -51,10 +51,11 @@ def get_drug_mapping(syn, cohort, synid_file_grs = 'syn24184523'):
                 choice_str = choice_str.replace('"', '')
             
                 for pair in choice_str.split('|'):
-                    code = pair.split(',')[0].strip()
-                    value = pair.split(',')[1].strip()
-                    label = value.split('(')[0].strip()
-                    mapping[label] = code
+                    if (pair.strip() != ""): 
+                        code = pair.split(',')[0].strip()
+                        value = pair.split(',')[1].strip()
+                        label = value.split('(')[0].strip()
+                        mapping[label] = code
     return(mapping)
 
 def get_regimen_abbr(regimen, mapping):
@@ -72,49 +73,53 @@ def get_regimen_abbr(regimen, mapping):
     return(abbr)
 
 # parameters
-synid_file_drug = 'syn22296818'
 cohort = 'Prostate'
 abbrs = []
-top_x_regimens=100
+top_x_regimens=20
 
-# get regimen abbreviations
-mapping = get_drug_mapping(syn, cohort)
-# mapping of drug names to NCIT codes
-regimen_synid = "syn22296818"
-regimens_to_exclude = ["Investigational Drug"]
-regimen_ent = syn.get(regimen_synid)
-regimendf = pd.read_csv(regimen_ent.path)
-# Get only NSCLC cohort
-regimendf = regimendf[regimendf['cohort'] == cohort]
-# Use redcap_ca_index == Yes
-regimendf = regimendf[regimendf['redcap_ca_index'] == "Yes"]
-# Exclude regimens
-regimendf = regimendf[~regimendf['regimen_drugs'].isin(regimens_to_exclude)]
-regimendf = regimendf[
-    ~regimendf['regimen_drugs'].str.contains("Investigational Drug")
-]
-# Exclude all regimens with "Other"
-regimendf = regimendf[~regimendf['regimen_drugs'].str.contains("Other")]
-# sort file by regimen_number and drop rest of duplicates
-# (not all duplicates), if duplicated keep the first regimen
-regimendf.sort_values('regimen_number', inplace=True)
-regimendf.drop_duplicates(["record_id", "regimen_drugs"], inplace=True)
-
-count_of_regimens = regimendf['regimen_drugs'].value_counts()
-# Obtain top X number of regimens
-to_include_regimens = count_of_regimens[:top_x_regimens].index.tolist()
-
-subset_regimendf = regimendf[
-    regimendf['regimen_drugs'].isin(to_include_regimens)
-]
-regimen_groups = subset_regimendf.groupby("regimen_drugs")
-new_regimen_info = pd.DataFrame()
-# Create regimen clinical headers
-final_regimendf = pd.DataFrame()
-for regimen, df in regimen_groups:
-    # Create regimen drug abbreviations
-    abbrs.append(get_regimen_abbr(regimen, mapping))
-
-
-print(abbrs)
+for cohort in 'BrCa', 'CRC', 'NSCLC', 'Prostate', 'PANC':
+    abbrs = []
+    # get regimen abbreviations
+    mapping = get_drug_mapping(syn, cohort)
+    # mapping of drug names to NCIT codes
+    regimen_synid = "syn22296818"
+    regimens_to_exclude = ["Investigational Drug"]
+    regimen_ent = syn.get(regimen_synid)
+    regimendf = pd.read_csv(regimen_ent.path)
+    # Get only NSCLC cohort
+    regimendf = regimendf[regimendf['cohort'] == cohort]
+    # Use redcap_ca_index == Yes
+    regimendf = regimendf[regimendf['redcap_ca_index'] == "Yes"]
+    # Exclude regimens
+    regimendf = regimendf[~regimendf['regimen_drugs'].isin(regimens_to_exclude)]
+    regimendf = regimendf[
+        ~regimendf['regimen_drugs'].str.contains("Investigational Drug")
+    ]
+    # Exclude all regimens with "Other"
+    regimendf = regimendf[~regimendf['regimen_drugs'].str.contains("Other")]
+    # sort file by regimen_number and drop rest of duplicates
+    # (not all duplicates), if duplicated keep the first regimen
+    regimendf.sort_values('regimen_number', inplace=True)
+    regimendf.drop_duplicates(["record_id", "regimen_drugs"], inplace=True)
+    
+    count_of_regimens = regimendf['regimen_drugs'].value_counts()
+    # Obtain top X number of regimens
+    to_include_regimens = count_of_regimens[:top_x_regimens].index.tolist()
+    
+    subset_regimendf = regimendf[
+        regimendf['regimen_drugs'].isin(to_include_regimens)
+    ]
+    regimen_groups = subset_regimendf.groupby("regimen_drugs")
+    new_regimen_info = pd.DataFrame()
+    # Create regimen clinical headers
+    final_regimendf = pd.DataFrame()
+    for regimen, df in regimen_groups:
+        # Create regimen drug abbreviations
+        abbrs.append(get_regimen_abbr(regimen, mapping))
+        
+        #print(regimen)
+        #print(get_regimen_abbr(regimen, mapping))
+    
+    print(cohort)
+    print(abbrs)
 
