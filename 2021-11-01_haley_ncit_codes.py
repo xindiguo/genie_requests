@@ -1,3 +1,10 @@
+"""
+Description: validate python functions to extract drug NCIT code to drug name mappings.
+Author: Haley Hunter-Zinck
+Date: November 1, 2021
+genisp command: python -m geniesp --staging NSCLC ~/cbioportal 1.1-consortium
+"""
+
 import synapseclient
 import pandas as pd
 
