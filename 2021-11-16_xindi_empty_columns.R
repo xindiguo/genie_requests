@@ -82,15 +82,36 @@ for (cohort in cohorts) {
   }
 }
 
+# main direct ------------------
+
+synid_tables <- as.character(get_bpc_table_synapse_ids(synid_table_view))
+
+empty_col <- list()
+nonempty_col <- list()
+for (synid_table in synid_tables) {
+  query <- glue("SELECT * FROM {synid_table}")
+  data <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
+  
+  idx_empty <- which(apply(data, 2, function(x) {return(length(which(!is.na(x))) == 0)}))
+  idx_nonempty <- which(apply(data, 2, function(x) {return(length(which(!is.na(x))) > 0)}))
+  
+  empty_col[[synid_table]] <- colnames(data)[idx_empty]
+  nonempty_col[[synid_table]] <- colnames(data)[idx_nonempty]
+}
+
+col_root_empty <- unlist(lapply(strsplit(unlist(empty_col), split = "___"), head, n = 1))
+col_root_not_empty <- unlist(lapply(strsplit(unlist(nonempty_col), split = "___"), head, n = 1))
+col_empty <- setdiff(col_root_empty, col_root_not_empty)
+
 # write --------------------
 
-write(inter, ncolumns = 1, file = file_output)
+write(col_empty, ncolumns = 1, file = file_output)
 
 save_to_synapse(path = file_output, 
                   parent_id = synid_folder_output,
                   prov_name = "empty columns", 
                   prov_desc = "columns that are entirely empty in the BPC Synapse tables", 
-                  prov_used = as.character(get_bpc_table_synapse_ids()), 
-                  prov_exec = "")
+                  prov_used = as.character(get_bpc_table_synapse_ids(synid_table_view)), 
+                  prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-11-16_xindi_empty_columns.R")
 
 file.remove(file_output)
