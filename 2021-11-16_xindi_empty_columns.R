@@ -103,6 +103,8 @@ col_root_empty <- unlist(lapply(strsplit(unlist(empty_col), split = "___"), head
 col_root_not_empty <- unlist(lapply(strsplit(unlist(nonempty_col), split = "___"), head, n = 1))
 col_empty <- setdiff(col_root_empty, col_root_not_empty)
 
+
+
 # write --------------------
 
 write(col_empty, ncolumns = 1, file = file_output)
