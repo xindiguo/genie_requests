@@ -59,7 +59,7 @@ synid_folder_exports <- "syn20781633"
 # parameters
 allowed_codes <- c('NSCLC', 'CMPT', 'LCLC', 'LUAD', 'LUPC', 'LUSC', 'NSCLCPD', 'LUAS', 'LUMEC', 'LECLC', 'CCLC', 'RLCLC', 'GCLC', 'BLCLC')
 seq_min <- "Jan-2018"
-seq_max <- "Dec-2019"
+seq_max <- "Sep-2021"
 
 # functions ----------------------------
 
@@ -314,6 +314,19 @@ added_sam <- eligible_cohort %>%
   filter(is.element(PATIENT_ID, unlist(bpc_pat_ids))) %>%
   select(PATIENT_ID, SAMPLE_IDS)
 
+added_sam$ALREADY_IN_BPC <- rep(F, nrow(added_sam))
+if (nrow(added_sam)) {
+  for (i in 1:nrow(added_sam)) {
+    ids_sam <- added_sam[i, "SAMPLE_IDS"]
+    str_ids_sam <- paste0("'", paste0(unlist(strsplit(ids_sam, split = ";")), collapse = "','"), "'")
+    query <- glue("SELECT cpt_genie_sample_id FROM {synid_table_bpc_sam} WHERE cpt_genie_sample_id IN ({str_ids_sam})")
+    res <- as.data.frame(synTableQuery(query, includeRowIdAndRowVersion = F))
+    if (nrow(res)) {
+      added_sam$ALREADY_IN_BPC[i] <- T
+    }
+  }
+} 
+
 # checks --------------
 
 if (perform_check && nrow(added_sam)) {
@@ -366,7 +379,7 @@ if (save_synapse) {
   save_to_synapse(path = file_output, 
                   parent_id = parent_id, 
                   prov_name = "updated sample list", 
-                  prov_desc = "additional samples for NSCLC phase 1 cohorts", 
+                  prov_desc = glue("additional samples for NSCLC phase 1 cohorts seqeuenced between {seq_min} and {seq_max}"), 
                   prov_used = c(synid_table_bpc, synid_table_pat, synid_table_sam), 
                   prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-11-12_shawn_nsclc_phase1_samples.R")
   file.remove(file_output)
