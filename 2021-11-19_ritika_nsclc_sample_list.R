@@ -132,7 +132,7 @@ save_to_synapse(path = file_sample_output,
 save_to_synapse(path = file_patient_output, 
                 parent_id = synid_folder_output, 
                 prov_name = "patient list", 
-                prov_desc = "patient list derived from cancer panel test file", 
+                prov_desc = "patient list copied", 
                 prov_used = synid_file_pt, 
                 prov_exec = "https://github.com/hhunterzinck/genie_requests/blob/main/2021-11-19_ritika_nsclc_sample_list.R")
 
