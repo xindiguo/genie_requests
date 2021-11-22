@@ -16,6 +16,8 @@
 #   synapse store --parentid syn26471041 $file
 # }
 # python -m geniesp Prostate ../cbioportal 1.1-consortium --staging
+# python ../cbioportal/core/src/main/scripts/importer/validateData.py -s PANC -n 
+# python ../cbioportal/core/src/main/scripts/importer/validateData.py -s Prostate -n 
 
 
 # setup ------------------------
