@@ -1,4 +1,5 @@
-# Description: Automate release schedule dates for main GENIE. 
+# Description: Automate release schedule dates for main GENIE by calculating
+#   the #nd ***day of each month between a specified date range.  
 # Author: Haley Hunter-Zinck
 # Date: 2021-12-01
 
