@@ -78,6 +78,7 @@ for level in error warning
     }
     Rscript main.R -c CRC -s all -r table -l $level -v -u $synid_folder_crc
     Rscript main.R -c CRC -s all -r comparison -l $level -v -u $synid_folder_crc
+    Rscript main.R -c CRC -s all -r release -l error -v -u $synid_folder_crc
 }
 
 # NSCLC
@@ -89,6 +90,7 @@ for level in error warning
     }
     Rscript main.R -c NSCLC -s all -r table -l $level -v -u $synid_folder_nsclc
     Rscript main.R -c NSCLC -s all -r comparison -l $level -v -u $synid_folder_nsclc
+    Rscript main.R -c NSCLC -s all -r release -l error -v -u $synid_folder_nsclc
 }
 
 # PANC
